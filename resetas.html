@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CocinaFácil - 20 Recetas Deliciosas</title>
+    <style>
+        /* CSS básico */
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        
+        header {
+            background-color: #ff6b6b;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            margin: 0;
+        }
+        
+        .recetas-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .receta {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .receta:hover {
+            transform: translateY(-5px);
+        }
+        
+        .receta-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .receta-contenido {
+            padding: 20px;
+        }
+        
+        .receta h2 {
+            margin-top: 0;
+            color: #ff6b6b;
+        }
+        
+        .receta p {
+            color: #666;
+        }
+        
+        .ver-receta {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+        
+        .ver-receta:hover {
+            background: #ff5252;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal-contenido {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 800px;
+            position: relative;
+        }
+        
+        .cerrar-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .receta-detalle img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .ingredientes, .instrucciones {
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .recetas-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CocinaFácil</h1>
+        <p>20 recetas deliciosas para todos los días</p>
+    </header>
+    
+    <div class="recetas-container" id="recetas-container">
+        <!-- Las recetas se cargarán aquí con JavaScript -->
+    </div>
+    
+    <!-- Modal para mostrar receta completa -->
+    <div id="receta-modal" class="modal">
+        <div class="modal-contenido">
+            <span class="cerrar-modal">&times;</span>
+            <div id="receta-detalle"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Base de datos de recetas
+        const recetas = [
+            {
+                id: 1,
+                nombre: "Pasta Carbonara",
+                imagen: "https://images.unsplash.com/photo-1611270730895-245c9422ae55",
+                tiempo: "25 min",
+                descripcion: "Clásica pasta italiana con huevo, queso, panceta y pimienta negra.",
+                ingredientes: [
+                    "400g de espaguetis",
+                    "200g de panceta o guanciale",
+                    "4 yemas de huevo",
+                    "50g de queso pecorino rallado",
+                    "50g de parmesano rallado",
+                    "Pimienta negra molida",
+                    "Sal"
+                ],
+                instrucciones: [
+                    "Cocinar la pasta en agua con sal al dente.",
+                    "Dorar la panceta en una sartén sin aceite.",
+                    "Batir las yemas con los quesos y pimienta.",
+                    "Escurrir la pasta y mezclar inmediatamente con la panceta y luego con la mezcla de huevo.",
+                    "Servir con más queso y pimienta."
+                ]
+            },
+            {
+                id: 2,
+                nombre: "Ensalada César",
+                imagen: "https://images.unsplash.com/photo-1546793665-c74683f339c1",
+                tiempo: "15 min",
+                descripcion: "Ensalada fresca con pollo, croutons y aderezo César.",
+                ingredientes: [
+                    "1 lechuga romana",
+                    "200g de pechuga de pollo",
+                    "50g de queso parmesano",
+                    "1 taza de croutons",
+                    "1/2 taza de aderezo César",
+                    "Anchoas (opcional)",
+                    "Pimienta"
+                ],
+                instrucciones: [
+                    "Cocinar el pollo a la plancha y cortar en tiras.",
+                    "Lavar y cortar la lechuga.",
+                    "Mezclar todos los ingredientes en un bol grande.",
+                    "Añadir el aderezo y mezclar suavemente.",
+                    "Servir con parmesano rallado por encima."
+                ]
+            },
+            {
+                id: 3,
+                nombre: "Tortilla de Patatas",
+                imagen: "https://images.unsplash.com/photo-1572454591674-b8c62c1c89b3",
+                tiempo: "30 min",
+                descripcion: "Tradicional tortilla española con patatas y cebolla.",
+                ingredientes: [
+                    "6 huevos",
+                    "4 patatas medianas",
+                    "1 cebolla grande",
+                    "Aceite de oliva",
+                    "Sal"
+                ],
+                instrucciones: [
+                    "Pelar y cortar las patatas en rodajas finas.",
+                    "Cortar la cebolla en juliana.",
+                    "Freír las patatas y cebolla en aceite abundante a fuego medio hasta que estén tiernas.",
+                    "Batir los huevos en un bol grande y mezclar con las patatas y cebolla escurridas.",
+                    "Cuajar la tortilla en una sartén antiadherente por ambos lados.",
+                    "Servir caliente o fría."
+                ]
+            },
+            {
+                id: 4,
+                nombre: "Sopa de Tomate",
+                imagen: "https://images.unsplash.com/photo-1547592180-85f173990554",
+                tiempo: "35 min",
+                descripcion: "Sopa cremosa de tomate con un toque de albahaca.",
+                ingredientes: [
+                    "1kg de tomates maduros",
+                    "1 cebolla",
+                    "2 dientes de ajo",
+                    "500ml de caldo de verduras",
+                    "200ml de nata para cocinar",
+                    "Hojas de albahaca fresca",
+                    "Sal y pimienta",
+                    "Aceite de oliva"
+                ],
+                instrucciones: [
+                    "Pelar y picar la cebolla y el ajo.",
+                    "Lavar y cortar los tomates.",
+                    "Rehogar la cebolla y ajo en aceite hasta que estén transparentes.",
+                    "Añadir los tomates y cocinar 10 minutos.",
+                    "Agregar el caldo y cocinar 15 minutos más.",
+                    "Triturar y pasar por un colador.",
+                    "Añadir la nata y albahaca picada.",
+                    "Rectificar de sal y servir caliente."
+                ]
+            },
+            {
+                id: 5,
+                nombre: "Pollo al Curry",
+                imagen: "https://images.unsplash.com/photo-1536304447747-43a5e5f20e1c",
+                tiempo: "40 min",
+                descripcion: "Pollo en salsa de curry con leche de coco y especias.",
+                ingredientes: [
+                    "500g de pollo en trozos",
+                    "1 cebolla",
+                    "2 dientes de ajo",
+                    "1 pimiento rojo",
+                    "400ml de leche de coco",
+                    "2 cucharadas de pasta de curry",
+                    "1 cucharadita de jengibre rallado",
+                    "Aceite vegetal",
+                    "Cilantro fresco",
+                    "Sal"
+                ],
+                instrucciones: [
+                    "Dorar los trozos de pollo en aceite y reservar.",
+                    "Rehogar la cebolla, ajo y pimiento picados.",
+                    "Añadir la pasta de curry y jengibre, cocinar 2 minutos.",
+                    "Incorporar la leche de coco y el pollo.",
+                    "Cocinar a fuego lento 20 minutos.",
+                    "Servir con arroz y cilantro fresco."
+                ]
+            },
+            {
+                id: 6,
+                nombre: "Lasagna Bolognesa",
+                imagen: "https://images.unsplash.com/photo-1629115916087-7e8c114a24ed",
+                tiempo: "1h 30min",
+                descripcion: "Clásica lasagna italiana con carne y salsa bechamel.",
+                ingredientes: [
+                    "12 láminas de lasagna",
+                    "500g de carne picada mixta",
+                    "1 cebolla",
+                    "1 zanahoria",
+                    "1 tallo de apio",
+                    "800g de tomate triturado",
+                    "100g de queso parmesano",
+                    "200g de mozzarella",
+                    "50g de mantequilla",
+                    "50g de harina",
+                    "500ml de leche",
+                    "Sal, pimienta y nuez moscada"
+                ],
+                instrucciones: [
+                    "Preparar ragú boloñés: sofreír cebolla, zanahoria y apio picados, añadir carne y cocinar, luego tomate y cocinar 30min.",
+                    "Preparar bechamel: derretir mantequilla, añadir harina, luego leche caliente y especias.",
+                    "Alternar capas de pasta, ragú, bechamel y quesos en fuente para horno.",
+                    "Hornear a 180°C 30-35 minutos.",
+                    "Dejar reposar 10 minutos antes de servir."
+                ]
+            },
+            {
+                id: 7,
+                nombre: "Risotto de Champiñones",
+                imagen: "https://images.unsplash.com/photo-1603105037880-880cd4edfb0d",
+                tiempo: "35 min",
+                descripcion: "Cremoso risotto italiano con champiñones y parmesano.",
+                ingredientes: [
+                    "300g de arroz arborio",
+                    "300g de champiñones",
+                    "1 cebolla",
+                    "1 litro de caldo de verduras",
+                    "100ml de vino blanco",
+                    "50g de mantequilla",
+                    "50g de queso parmesano",
+                    "Aceite de oliva",
+                    "Perejil fresco",
+                    "Sal y pimienta"
+                ],
+                instrucciones: [
+                    "Limpiar y cortar los champiñones, saltear en mantequilla y reservar.",
+                    "Rehogar la cebolla picada en aceite.",
+                    "Añadir el arroz y cocinar 2 minutos.",
+                    "Incorporar el vino y dejar evaporar.",
+                    "Añadir caldo caliente poco a poco, removiendo constantemente.",
+                    "Cuando el arroz esté al dente (18-20min), añadir los champiñones, mantequilla y parmesano.",
+                    "Servir con perejil picado."
+                ]
+            },
+            {
+                id: 8,
+                nombre: "Guacamole",
+                imagen: "https://images.unsplash.com/photo-1551361417-73e5e9e4b3e2",
+                tiempo: "15 min",
+                descripcion: "Deliciosa salsa mexicana de aguacate para acompañar.",
+                ingredientes: [
+                    "3 aguacates maduros",
+                    "1 tomate",
+                    "1/2 cebolla morada",
+                    "1 limón",
+                    "1 chile jalapeño",
+                    "Cilantro fresco",
+                    "Sal"
+                ],
+                instrucciones: [
+                    "Cortar los aguacates por la mitad, quitar el hueso y sacar la pulpa.",
+                    "Machacar los aguacates con un tenedor hasta obtener una textura cremosa pero con tropezones.",
+                    "Picar finamente la cebolla, el tomate (sin semillas) y el jalapeño.",
+                    "Mezclar todo con el aguacate.",
+                    "Añadir jugo de limón, cilantro picado y sal al gusto.",
+                    "Servir con totopos o como acompañamiento."
+                ]
+            },
+            {
+                id: 9,
+                nombre: "Pizza Margherita",
+                imagen: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002",
+                tiempo: "1h 15min",
+                descripcion: "Pizza clásica napolitana con tomate, mozzarella y albahaca.",
+                ingredientes: [
+                    "250g de harina de fuerza",
+                    "150ml de agua tibia",
+                    "7g de levadura fresca",
+                    "1 cucharadita de sal",
+                    "1 cucharada de aceite de oliva",
+                    "150g de salsa de tomate",
+                    "200g de mozzarella",
+                    "Hojas de albahaca fresca",
+                    "Sal y pimienta"
+                ],
+                instrucciones: [
+                    "Mezclar harina, levadura disuelta en agua, sal y aceite. Amasar 10min hasta obtener una masa elástica.",
+                    "Dejar reposar la masa 1h hasta que doble su volumen.",
+                    "Estirar la masa sobre una superficie enharinada.",
+                    "Extender la salsa de tomate, añadir la mozzarella en trozos.",
+                    "Hornear a 250°C 10-12 minutos.",
+                    "Añadir albahaca fresca al servir."
+                ]
+            },
+            {
+                id: 10,
+                nombre: "Brownie de Chocolate",
+                imagen: "https://images.unsplash.com/photo-1564355808539-22fda35bed7e",
+                tiempo: "45 min",
+                descripcion: "Brownie húmedo y chocolatoso con nueces.",
+                ingredientes: [
+                    "200g de chocolate negro",
+                    "150g de mantequilla",
+                    "3 huevos",
+                    "200g de azúcar",
+                    "100g de harina",
+                    "100g de nueces",
+                    "1 pizca de sal"
+                ],
+                instrucciones: [
+                    "Derretir el chocolate con la mantequilla al baño María.",
+                    "Batir los huevos con el azúcar hasta que blanqueen.",
+                    "Incorporar el chocolate derretido a la mezcla de huevos.",
+                    "Añadir la harina tamizada y las nueces picadas.",
+                    "Verter en molde forrado con papel de horno.",
+                    "Hornear a 180°C 20-25 minutos (el centro debe quedar ligeramente húmedo).",
+                    "Dejar enfriar antes de cortar."
+                ]
+            },
+            {
+                id: 11,
+                nombre: "Paella de Mariscos",
+                imagen: "https://images.unsplash.com/photo-1555244162-803834f70033",
+                tiempo: "50 min",
+                descripcion: "Tradicional paella valenciana con variedad de mariscos.",
+                ingredientes: [
+                    "400g de arroz bomba",
+                    "500g de mejillones",
+                    "300g de gambas",
+                    "200g de calamares",
+                    "1 pimiento rojo",
+                    "1 tomate",
+                    "1 cebolla",
+                    "2 dientes de ajo",
+                    "1 litro de caldo de pescado",
+                    "Azafrán o colorante alimentario",
+                    "Aceite de oliva",
+                    "Sal",
+                    "Limón"
+                ],
+                instrucciones: [
+                    "Limpiar todos los mariscos y cortar los calamares en anillos.",
+                    "Sofreír en paellera con aceite: ajo, cebolla, pimiento y tomate picados.",
+                    "Añadir los calamares y cocinar 5 minutos.",
+                    "Incorporar el arroz y mezclar bien.",
+                    "Añadir el caldo caliente y el azafrán.",
+                    "Colocar los mariscos sobre el arroz.",
+                    "Cocinar a fuego medio 18-20 minutos sin remover.",
+                    "Dejar reposar 5 minutos y servir con limón."
+                ]
+            },
+            {
+                id: 12,
+                nombre: "Hamburguesa Casera",
+                imagen: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
+                tiempo: "30 min",
+                descripcion: "Hamburguesa jugosa con pan artesanal y toppings.",
+                ingredientes: [
+                    "500g de carne picada de ternera",
+                    "1 huevo",
+                    "1 cebolla",
+                    "2 dientes de ajo",
+                    "Pan rallado",
+                    "4 panes de hamburguesa",
+                    "Lechuga",
+                    "Tomate",
+                    "Queso cheddar",
+                    "Salsas al gusto",
+                    "Sal y pimienta"
+                ],
+                instrucciones: [
+                    "Mezclar la carne con huevo, ajo picado, cebolla picada, pan rallado y especias.",
+                    "Formar 4 hamburguesas y refrigerar 15 minutos.",
+                    "Cocinar a la plancha o parrilla 4-5 minutos por lado.",
+                    "En el último minuto, añadir queso para que se derrita.",
+                    "Tostar ligeramente los panes.",
+                    "Montar la hamburguesa con los toppings deseados.",
+                    "Servir con patatas fritas."
+                ]
+            },
+            {
+                id: 13,
+                nombre: "Tarta de Manzana",
+                imagen: "https://images.unsplash.com/photo-1562007908-859b4ba9a1a2",
+                tiempo: "1h 15min",
+                descripcion: "Clásica tarta de manzana con masa quebrada.",
+                ingredientes: [
+                    "200g de harina",
+                    "100g de mantequilla",
+                    "1 huevo",
+                    "50g de azúcar",
+                    "4 manzanas",
+                    "Canela en polvo",
+                    "Mermelada de albaricoque"
+                ],
+                instrucciones: [
+                    "Mezclar harina, mantequilla fría en trozos, huevo y azúcar hasta obtener una masa homogénea.",
+                    "Enfriar la masa 30 minutos en nevera.",
+                    "Pelar y cortar las manzanas en láminas finas.",
+                    "Estirar la masa y forrar un molde para tarta.",
+                    "Colocar las manzanas en espiral sobre la masa.",
+                    "Espolvorear canela y azúcar.",
+                    "Hornear a 180°C 35-40 minutos.",
+                    "Pincelar con mermelada diluida al servir."
+                ]
+            },
+            {
+                id: 14,
+                nombre: "Gazpacho Andaluz",
+                imagen: "https://images.unsplash.com/photo-1547592180-85f173990554",
+                tiempo: "20 min",
+                descripcion: "Refrescante sopa fría de tomate y verduras.",
+                ingredientes: [
+                    "1kg de tomates maduros",
+                    "1 pimiento verde",
+                    "1 pepino",
+                    "1 diente de ajo",
+                    "50ml de aceite de oliva",
+                    "20ml de vinagre de jerez",
+                    "200g de pan duro remojado",
+                    "Sal",
+                    "Agua fría"
+                ],
+                instrucciones: [
+                    "Lavar y trocear todas las verduras.",
+                    "Triturar con el pan escurrido, ajo, aceite y vinagre.",
+                    "Añadir agua poco a poco hasta conseguir la textura deseada.",
+                    "Pasar por un colador fino.",
+                    "Enfriar al menos 2 horas antes de servir.",
+                    "Acompañar con tropezones de pepino, pimiento y pan tostado."
+                ]
+            },
+            {
+                id: 15,
+                nombre: "Salmón al Horno",
+                imagen: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2",
+                tiempo: "25 min",
+                descripcion: "Salmón horneado con limón y hierbas.",
+                ingredientes: [
+                    "4 filetes de salmón",
+                    "1 limón",
+                    "Eneldo fresco",
+                    "Aceite de oliva",
+                    "Sal y pimienta"
+                ],
+                instrucciones: [
+                    "Precalentar el horno a 200°C.",
+                    "Colocar los filetes de salmón en una fuente para horno.",
+                    "Aliñar con sal, pimienta, zumo de limón y aceite.",
+                    "Espolvorear eneldo picado.",
+                    "Hornear 12-15 minutos según grosor del pescado.",
+                    "Servir con rodajas de limón y más eneldo fresco."
+                ]
+            },
+            {
+                id: 16,
+                nombre: "Ratatouille",
+                imagen: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37",
+                tiempo: "1h 10min",
+                descripcion: "Guiso de verduras al estilo provenzal.",
+                ingredientes: [
+                    "1 berenjena",
+                    "2 calabacines",
+                    "2 pimientos rojos",
+                    "1 cebolla",
+                    "2 dientes de ajo",
+                    "4 tomates",
+                    "Hierbas provenzales",
+                    "Aceite de oliva",
+                    "Sal y pimienta"
+                ],
+                instrucciones: [
+                    "Cortar todas las verduras en rodajas finas.",
+                    "En una cazuela, sofreír cebolla y ajo picados.",
+                    "Añadir los tomates pelados y troceados, cocinar 10min.",
+                    "En una fuente para horno, alternar las rodajas de verduras en espiral.",
+                    "Verter la salsa de tomate por encima.",
+                    "Aliñar con hierbas, aceite, sal y pimienta.",
+                    "Hornear a 180°C 45-50 minutos cubierto con papel aluminio."
+                ]
+            },
+            {
+                id: 17,
+                nombre: "Tiramisú",
+                imagen: "https://images.unsplash.com/photo-1534774592507-488885376ad3",
+                tiempo: "30 min + reposo",
+                descripcion: "Postre italiano clásico con café y mascarpone.",
+                ingredientes: [
+                    "250g de queso mascarpone",
+                    "3 huevos",
+                    "150g de azúcar",
+                    "200g de bizcochos de soletilla",
+                    "200ml de café fuerte frío",
+                    "Cacao en polvo",
+                    "Licor de café (opcional)"
+                ],
+                instrucciones: [
+                    "Separar las yemas de las claras.",
+                    "Batir las yemas con el azúcar hasta blanquear.",
+                    "Incorporar el mascarpone a las yemas.",
+                    "Montar las claras a punto de nieve y mezclar con movimientos envolventes.",
+                    "Mojar ligeramente los bizcochos en café.",
+                    "En un molde, alternar capas de bizcochos y crema.",
+                    "Refrigerar al menos 4 horas (mejor toda la noche).",
+                    "Espolvorear cacao en polvo al servir."
+                ]
+            },
+            {
+                id: 18,
+                nombre: "Crepes",
+                imagen: "https://images.unsplash.com/photo-1551183053-bf91a1d81141",
+                tiempo: "30 min",
+                descripcion: "Finas crepes dulces o saladas para cualquier ocasión.",
+                ingredientes: [
+                    "250g de harina",
+                    "500ml de leche",
+                    "3 huevos",
+                    "50g de mantequilla derretida",
+                    "1 pizca de sal",
+                    "Azúcar (para versión dulce)"
+                ],
+                instrucciones: [
+                    "Mezclar la harina con los huevos y un poco de leche.",
+                    "Añadir el resto de leche poco a poco evitando grumos.",
+                    "Incorporar la mantequilla y la sal (y azúcar si es dulce).",
+                    "Dejar reposar la masa 30 minutos.",
+                    "En una sartén antiadherente, cocinar una fina capa de masa por ambos lados.",
+                    "Rellenar al gusto: nutella, fruta, jamón y queso, etc."
+                ]
+            },
+            {
+                id: 19,
+                nombre: "Chili con Carne",
+                imagen: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f",
+                tiempo: "1h 30min",
+                descripcion: "Picante guiso mexicano de carne y frijoles.",
+                ingredientes: [
+                    "500g de carne picada de ternera",
+                    "1 lata de frijoles rojos",
+                    "1 lata de tomates triturados",
+                    "1 cebolla",
+                    "2 dientes de ajo",
+                    "1 pimiento verde",
+                    "Chile en polvo al gusto",
+                    "Comino",
+                    "Caldo de carne",
+                    "Aceite vegetal",
+                    "Sal"
+                ],
+                instrucciones: [
+                    "Dorar la carne picada en aceite y reservar.",
+                    "Sofreír cebolla, ajo y pimiento picados.",
+                    "Añadir las especias y cocinar 1 minuto.",
+                    "Incorporar los tomates, frijoles escurridos y la carne.",
+                    "Añadir caldo hasta cubrir y cocinar a fuego lento 1 hora.",
+                    "Rectificar de sal y especias.",
+                    "Servir con arroz, crema agria y cilantro."
+                ]
+            },
+            {
+                id: 20,
+                nombre: "Mousse de Chocolate",
+                imagen: "https://images.unsplash.com/photo-1563805042-7684c019e1cb",
+                tiempo: "20 min + reposo",
+                descripcion: "Postre ligero y esponjoso de chocolate.",
+                ingredientes: [
+                    "200g de chocolate negro",
+                    "4 huevos",
+                    "50g de azúcar",
+                    "1 pizca de sal"
+                ],
+                instrucciones: [
+                    "Derretir el chocolate al baño María y dejar enfriar ligeramente.",
+                    "Separar las yemas de las claras.",
+                    "Batir las yemas con el azúcar hasta blanquear.",
+                    "Montar las claras a punto de nieve con la pizca de sal.",
+                    "Incorporar el chocolate a las yemas.",
+                    "Agregar las claras con movimientos envolventes.",
+                    "Verter en copas individuales y refrigerar 4 horas.",
+                    "Decorar con frutas o crema batida."
+                ]
+            }
+        ];
+        
+        // Cargar recetas en la página
+        const recetasContainer = document.getElementById('recetas-container');
+        const modal = document.getElementById('receta-modal');
+        const modalContent = document.getElementById('receta-detalle');
+        const closeModal = document.querySelector('.cerrar-modal');
+        
+        function mostrarRecetas() {
+            recetasContainer.innerHTML = '';
+            
+            recetas.forEach(receta => {
+                const recetaElement = document.createElement('div');
+                recetaElement.className = 'receta';
+                recetaElement.innerHTML = `
+                    <img src="${receta.imagen}" alt="${receta.nombre}" class="receta-img">
+                    <div class="receta-contenido">
+                        <h2>${receta.nombre}</h2>
+                        <p><strong>Tiempo:</strong> ${receta.tiempo}</p>
+                        <p>${receta.descripcion}</p>
+                        <a href="#" class="ver-receta" data-id="${receta.id}">Ver Receta</a>
+                    </div>
+                `;
+                recetasContainer.appendChild(recetaElement);
+            });
+            
+            // Event listeners para los botones de ver receta
+            document.querySelectorAll('.ver-receta').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = parseInt(this.getAttribute('data-id'));
+                    mostrarRecetaCompleta(id);
+                });
+            });
+        }
+        
+        function mostrarRecetaCompleta(id) {
+            const receta = recetas.find(r => r.id === id);
+            
+            if (receta) {
+                modalContent.innerHTML = `
+                    <div class="receta-detalle">
+                        <img src="${receta.imagen}" alt="${receta.nombre}">
+                        <h2>${receta.nombre}</h2>
+                        <p><strong>Tiempo:</strong> ${receta.tiempo}</p>
+                        
+                        <div class="ingredientes">
+                            <h3>Ingredientes:</h3>
+                            <ul>
+                                ${receta.ingredientes.map(ing => `<li>${ing}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="instrucciones">
+                            <h3>Instrucciones:</h3>
+                            <ol>
+                                ${receta.instrucciones.map(ins => `<li>${ins}</li>`).join('')}
+                            </ol>
+                        </div>
+                    </div>
+                `;
+                
+                modal.style.display = 'block';
+            }
+        }
+        
+        // Cerrar modal al hacer click en la X
+        closeModal.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+        
+        // Cerrar modal al hacer click fuera del contenido
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        
+        // Inicializar la página
+        mostrarRecetas();
+    </script>
+</body>
+</html>
